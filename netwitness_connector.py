@@ -78,7 +78,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return bool(match)
 
-    def _make_rest_call(self, action_result, endpoint=None, data=None, method="get", files={}, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
+    def _make_rest_call(self, action_result, endpoint=None, data=None, method=requests.get, files={}, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
         """ Function that makes the REST call to the device. It's a generic function that can be called from various
         action handlers.
 
@@ -89,37 +89,18 @@ class NetWitnessConnector(phantom.BaseConnector):
         :return: status success/failure(along with appropriate message) and response obtained by making an API call
         """
 
-        rest_resp = None
-
-        # get or post or put, whatever the caller asked us to use,
-        # if not specified the default will be 'get'
-        try:
-            request_func = getattr(requests, method)
-
-        except AttributeError:
-            self.debug_print(consts.NETWITNESS_ERR_API_UNSUPPORTED_METHOD.format(method=method))
-            # set the action_result status to error, the handler function
-            # will most probably return as is
-            return (action_result.set_status(phantom.APP_ERROR), rest_resp)
-
-        except Exception as e:
-            self.debug_print(consts.NETWITNESS_EXCEPTION_OCCURRED, e)
-            # set the action_result status to error, the handler function
-            # will most probably return as is
-            return (action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_EXCEPTION_OCCURRED, e), rest_resp)
-
         api_url = "{}{}".format(self._base_url, endpoint) if endpoint else self._base_url
 
         # Make the call
         try:
-            response = request_func(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files, timeout=timeout)
+            response = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files, timeout=timeout)
         except requests.exceptions.ReadTimeout:
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), rest_resp
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
             self.debug_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
             # set the action_result status to error, the handler function
             # will most probably return as is
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), rest_resp
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
 
         if response.status_code in error_resp_dict:
             self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=response.status_code,
@@ -127,8 +108,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             # set the action_result status to error, the handler function
             # will most probably return as is
             return (action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
-                                             status=response.status_code, detail=error_resp_dict[response.status_code]),
-                    rest_resp)
+                                             status=response.status_code, detail=error_resp_dict[response.status_code]), None)
 
         if response.status_code == consts.NETWITNESS_REST_RESP_SUCCESS:
             return phantom.APP_SUCCESS, response
@@ -137,7 +117,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         # set the action_result status to error, the handler function
         # will most probably return as is
         return (action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER, status=response.status_code,
-                                         detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG), rest_resp)
+                                         detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG), None)
 
     def _test_connectivity(self, param):
         """ This function tests the connectivity with RSA SA with the provided credentials.
@@ -187,7 +167,10 @@ class NetWitnessConnector(phantom.BaseConnector):
         file_name = os.path.basename(local_file_path)
 
         # Adding file to vault
-        vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
+        try:
+            vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
+        except Exception as e:
+            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
 
         # Updating report data with vault details
         if vault_ret_dict['succeeded']:
@@ -320,7 +303,10 @@ class NetWitnessConnector(phantom.BaseConnector):
         container_id = self.get_container_id()
 
         # Check if file with same file name and size is available in vault and save only if it is not available
-        vault_list = Vault.get_file_info(container_id=container_id)
+        try:
+            vault_list = Vault.get_file_info(container_id=container_id)
+        except Exception as e:
+            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
 
         # Iterate through each vault item in the container and compare name and size of file
         for vault in vault_list:
@@ -364,18 +350,23 @@ class NetWitnessConnector(phantom.BaseConnector):
         vault_id = param[phantom.APP_JSON_VAULT_ID]
 
         # check the vault for a file with the supplied ID
-        file_path = Vault.get_file_path(vault_id)
+        try:
 
-        if (not file_path):
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
+            file_path = Vault.get_file_path(vault_id)
 
-        file_info = Vault.get_file_info(vault_id)[0]
+            if (not file_path):
+                return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
+
+            file_info = Vault.get_file_info(vault_id)[0]
+
+        except Exception as e:
+            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
 
         upfile = open(file_path, 'rb')
 
         endpoint = '/decoder/parsers/upload'
 
-        ret_val, response = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method='post')
+        ret_val, response = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
 
         if not ret_val:
             return ret_val
