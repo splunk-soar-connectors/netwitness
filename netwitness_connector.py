@@ -103,6 +103,16 @@ class NetWitnessConnector(phantom.BaseConnector):
             self.debug_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
 
+        # store the response text in debug data, it will get dumped in the logs if an error occurs
+        if hasattr(action_result, 'add_debug_data'):
+            if rest_resp is not None:
+                action_result.add_debug_data({'r_status_code': rest_resp.status_code})
+                action_result.add_debug_data({'r_text': rest_resp.text})
+                action_result.add_debug_data({'r_headers': rest_resp.headers})
+            else:
+                action_result.add_debug_data({'r_text': 'r is None'})
+                return action_result.set_status(phantom.APP_ERROR, "Got no response from InsightVM instance"), None
+
         if rest_resp.status_code in error_resp_dict:
             self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]))
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
