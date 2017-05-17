@@ -93,31 +93,27 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Make the call
         try:
-            response = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files, timeout=timeout)
+            rest_resp = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files, timeout=timeout)
         except requests.exceptions.ReadTimeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
+            if 'Connection timed out' in str(e):
+                self.debug_print(consts.NETWITNESS_ERR_TIMEOUT)
+                return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
             self.debug_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
-            # set the action_result status to error, the handler function
-            # will most probably return as is
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
 
-        if response.status_code in error_resp_dict:
-            self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=response.status_code,
-                                                                 detail=error_resp_dict[response.status_code]))
-            # set the action_result status to error, the handler function
-            # will most probably return as is
-            return (action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
-                                             status=response.status_code, detail=error_resp_dict[response.status_code]), None)
+        if rest_resp.status_code in error_resp_dict:
+            self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]))
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
+                                             status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]), rest_resp
 
-        if response.status_code == consts.NETWITNESS_REST_RESP_SUCCESS:
-            return phantom.APP_SUCCESS, response
+        if rest_resp.status_code == consts.NETWITNESS_REST_RESP_SUCCESS:
+            return phantom.APP_SUCCESS, rest_resp
 
-        # All other response codes from Rest call
-        # set the action_result status to error, the handler function
-        # will most probably return as is
-        return (action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER, status=response.status_code,
-                                         detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG), None)
+        # All other rest_resp codes from Rest call are errors
+        return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER, status=rest_resp.status_code,
+                                         detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG), rest_resp
 
     def _test_connectivity(self, param):
         """ This function tests the connectivity with RSA SA with the provided credentials.
@@ -167,10 +163,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         file_name = os.path.basename(local_file_path)
 
         # Adding file to vault
-        try:
-            vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
-        except Exception as e:
-            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
+        vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
 
         # Updating report data with vault details
         if vault_ret_dict['succeeded']:
@@ -303,10 +296,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         container_id = self.get_container_id()
 
         # Check if file with same file name and size is available in vault and save only if it is not available
-        try:
-            vault_list = Vault.get_file_info(container_id=container_id)
-        except Exception as e:
-            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
+        vault_list = Vault.get_file_info(container_id=container_id)
 
         # Iterate through each vault item in the container and compare name and size of file
         for vault in vault_list:
@@ -350,17 +340,12 @@ class NetWitnessConnector(phantom.BaseConnector):
         vault_id = param[phantom.APP_JSON_VAULT_ID]
 
         # check the vault for a file with the supplied ID
-        try:
+        file_path = Vault.get_file_path(vault_id)
 
-            file_path = Vault.get_file_path(vault_id)
+        if (not file_path):
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
 
-            if (not file_path):
-                return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
-
-            file_info = Vault.get_file_info(vault_id)[0]
-
-        except Exception as e:
-            return (action_result.set_status(phantom.APP_ERROR, "Unable to get Vault item details from Phantom. Details: {0}".format(str(e))), None)
+        file_info = Vault.get_file_info(vault_id)[0]
 
         upfile = open(file_path, 'rb')
 
