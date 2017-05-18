@@ -15,6 +15,7 @@
 NETWITNESS_ERR_BAD_RANGE = 'Session ID parameter has a bad range - smaller number should come first'
 NETWITNESS_ERR_BAD_PARAMS = 'This action requires a session ID, query, or start and end times'
 NETWITNESS_ERR_REVERSE_TIMES = 'Given time range is invalid - times appear to be reversed'
+NETWITNESS_ERR_VAULT_INFO = "Unable to get Vault item details from Phantom. Details: {0}"
 NETWITNESS_ERR_FROM_SERVER = 'API failed\nStatus code: {status}\nDetail: {detail}'
 NETWITNESS_ERR_TIMEOUT = 'Request timed out. Try limiting the scope of the search'
 NETWITNESS_ERR_BAD_CAP = 'Found no capture data based on the given parameters'

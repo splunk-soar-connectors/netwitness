@@ -169,7 +169,10 @@ class NetWitnessConnector(phantom.BaseConnector):
         file_name = os.path.basename(local_file_path)
 
         # Adding file to vault
-        vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
+        try:
+            vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         # Updating report data with vault details
         if vault_ret_dict['succeeded']:
@@ -302,7 +305,10 @@ class NetWitnessConnector(phantom.BaseConnector):
         container_id = self.get_container_id()
 
         # Check if file with same file name and size is available in vault and save only if it is not available
-        vault_list = Vault.get_file_info(container_id=container_id)
+        try:
+            vault_list = Vault.get_file_info(container_id=container_id)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         # Iterate through each vault item in the container and compare name and size of file
         for vault in vault_list:
@@ -346,12 +352,18 @@ class NetWitnessConnector(phantom.BaseConnector):
         vault_id = param[phantom.APP_JSON_VAULT_ID]
 
         # check the vault for a file with the supplied ID
-        file_path = Vault.get_file_path(vault_id)
+        try:
+            file_path = Vault.get_file_path(vault_id)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         if (not file_path):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
 
-        file_info = Vault.get_file_info(vault_id)[0]
+        try:
+            file_info = Vault.get_file_info(vault_id)[0]
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         upfile = open(file_path, 'rb')
 
