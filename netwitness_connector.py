@@ -18,6 +18,7 @@ import sys
 import uuid
 import json
 import shutil
+import signal
 import hashlib
 import tempfile
 import requests
@@ -35,6 +36,14 @@ error_resp_dict = {
     consts.NETWITNESS_REST_RESP_UNAUTHORIZED: consts.NETWITNESS_REST_RESP_UNAUTHORIZED_MSG,
     consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND: consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND_MSG
 }
+
+
+def timeout_handler(signum, frame):
+    raise Timeout()
+
+
+class Timeout(Exception):
+    pass
 
 
 class NetWitnessConnector(phantom.BaseConnector):
@@ -91,10 +100,13 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         api_url = "{}{}".format(self._base_url, endpoint) if endpoint else self._base_url
 
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout)
+
         # Make the call
         try:
-            rest_resp = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files, timeout=timeout)
-        except requests.exceptions.ReadTimeout:
+            rest_resp = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files)
+        except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
             if 'Connection timed out' in str(e):
@@ -102,6 +114,8 @@ class NetWitnessConnector(phantom.BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
             self.debug_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
+        finally:
+            signal.alarm(0)
 
         # store the response text in debug data, it will get dumped in the logs if an error occurs
         if hasattr(action_result, 'add_debug_data'):
