@@ -254,7 +254,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
             # Set filename
             if not filename:
-                filename = 'netwitness-{0}'.format(session_id.split(',')[0])
+                filename = 'netwitness-{0}'.format(session_id.replace(',', '_')[:50])
 
         elif query:
 
