@@ -390,6 +390,20 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_SUCC_UPLOAD)
 
+    def _restart_device(self, param):
+        """ This method restarts the configured device """
+
+        action_result = self.add_action_result(phantom.ActionResult(dict(param)))
+
+        endpoint = '/sys?msg=shutdown'
+
+        ret_val, response = self._make_rest_call(action_result, endpoint=endpoint)
+
+        if phantom.is_fail(ret_val):
+            return ret_val
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def handle_action(self, param):
         """ This function gets current action identifier and calls member function of it's own to handle the action.
 
@@ -401,6 +415,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         action_details = {
             "test_asset_connectivity": self._test_connectivity,
             "get_log_capture": self._get_log_capture,
+            "restart_device": self._restart_device,
             "upload_file": self._upload_file,
             "get_pcap": self._get_pcap
         }
