@@ -1,16 +1,8 @@
-# --
 # File: netwitness_connector.py
+# Copyright (c) 2017-2018 Splunk Inc.
 #
-# Copyright (c) Phantom Cyber Corporation, 2017-2018
-#
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber Corporation.
-#
-# --
+# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 
 import re
 import os
@@ -258,7 +250,17 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         elif query:
 
-            data = {'sessions': '0-0', 'where': query}
+            if time1 and time2:
+
+                try:
+                    datetime.strptime(time1, "%Y-%m-%d %H:%M:%S")
+                    datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
+                except Exception as e:
+                    return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_INVALID_PARAM.format(message=e))
+
+                query += 'time="{0}"="{1}"'.format(time1, time2)
+
+            data = {'where': query}
 
             # Set filename
             if not filename:
