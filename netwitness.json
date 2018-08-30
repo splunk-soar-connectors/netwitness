@@ -1,7 +1,7 @@
 {
     "appid": "cedf3b46-0aeb-4d08-8097-3019ad4c42c7",
     "name": "NetWitness Logs and Packets",
-    "description": "<p>This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets.</p>",
+    "description": "<p>This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets</p>",
     "publisher": "Phantom",
     "package_name": "phantom_netwitness",
     "type": "investigative",
@@ -12,7 +12,7 @@
     "product_vendor": "RSA",
     "product_name": "NetWitness Logs and Packets",
     "product_version_regex": ".*",
-    "min_phantom_version": "2.1.486",
+    "min_phantom_version": "3.5.180",
     "logo": "logo_rsa.svg",
     "logo_dark": "logo_rsa_dark.svg",
     "configuration": {

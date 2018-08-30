@@ -250,7 +250,17 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         elif query:
 
-            data = {'sessions': '0-0', 'where': query}
+            if time1 and time2:
+
+                try:
+                    datetime.strptime(time1, "%Y-%m-%d %H:%M:%S")
+                    datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
+                except Exception as e:
+                    return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_INVALID_PARAM.format(message=e))
+
+                query += 'time="{0}"="{1}"'.format(time1, time2)
+
+            data = {'where': query}
 
             # Set filename
             if not filename:
