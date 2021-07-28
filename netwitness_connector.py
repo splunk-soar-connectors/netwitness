@@ -1,7 +1,7 @@
 # File: netwitness_connector.py
-# Copyright (c) 2017-2018 Splunk Inc.
+# Copyright (c) 2017-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
 
 import re
@@ -18,7 +18,7 @@ from datetime import datetime
 
 # Phantom imports
 import phantom.app as phantom
-from phantom.vault import Vault
+import phantom.rules as ph_rules
 
 # Local imports
 import netwitness_consts as consts
@@ -63,7 +63,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         config = self.get_config()
 
         # Initialize parameters
-        self._verify = config[consts.NETWITNESS_CONFIG_VERIFY]
+        self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, False)
         self._base_url = config[consts.NETWITNESS_CONFIG_SERVER].strip('/')
         self._api_username = config[consts.NETWITNESS_CONFIG_API_USERNAME]
         self._api_password = config[consts.NETWITNESS_CONFIG_API_PASSWORD]
@@ -73,9 +73,9 @@ class NetWitnessConnector(phantom.BaseConnector):
         return phantom.APP_SUCCESS
 
     def _verify_session_ids(self, param):
-        """ This function validates the session_ids parameter. It makes sure it is a lit of IDs or an ID range """
+        """ This function validates the session_ids parameter. It makes sure it is a list of IDs or an ID range """
 
-        match = re.match("^( *[0-9]+ *, *)* *[0-9]+ *$|^ *[0-9]+ *- *[0-9]+ *$", param)
+        match = re.match("^ *[0-9]+ *(, *[0-9]+ *)*$|^ *[0-9]+ *- *[0-9]+ *$", param)
 
         return bool(match)
 
@@ -176,21 +176,21 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Adding file to vault
         try:
-            vault_ret_dict = Vault.add_attachment(local_file_path, container_id, file_name, vault_details)
+            success, message, vault_id = ph_rules.vault_add(file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_details)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         # Updating report data with vault details
-        if vault_ret_dict['succeeded']:
-            file_details[phantom.APP_JSON_VAULT_ID] = vault_ret_dict[phantom.APP_JSON_HASH]
+        if success:
+            file_details[phantom.APP_JSON_VAULT_ID] = vault_id
             file_details[consts.NETWITNESS_JSON_FILE_NAME] = file_name
             action_result.add_data(file_details)
-            self.send_progress(consts.NETWITNESS_SUCC_FILE_ADD_TO_VAULT, vault_id=vault_ret_dict[phantom.APP_JSON_HASH])
+            self.send_progress(consts.NETWITNESS_SUCC_FILE_ADD_TO_VAULT, vault_id=vault_id)
             return phantom.APP_SUCCESS
 
         # Error while adding file to vault
-        self.debug_print('ERROR: Adding file to vault:', vault_ret_dict)
-        action_result.append_to_message('. {}'.format(vault_ret_dict['message']))
+        self.debug_print('ERROR: Adding file to vault:', message)
+        action_result.append_to_message('. {}'.format(message))
 
         # set the action_result status to error, the handler function
         # will most probably return as is
@@ -233,7 +233,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_BAD_PARAMS)
 
         if session_id and '-' in session_id:
-            num_list = map(int, session_id.split('-'))
+            num_list = list(map(int, session_id.split('-')))
             if num_list[0] > num_list[1]:
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_BAD_RANGE)
 
@@ -250,7 +250,17 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         elif query:
 
-            data = {'sessions': '0-0', 'where': query}
+            if time1 and time2:
+
+                try:
+                    datetime.strptime(time1, "%Y-%m-%d %H:%M:%S")
+                    datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
+                except Exception as e:
+                    return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_INVALID_PARAM.format(message=e))
+
+                query += ' && time="{0}"="{1}"'.format(time1, time2)
+
+            data = {'where': query}
 
             # Set filename
             if not filename:
@@ -312,12 +322,12 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Check if file with same file name and size is available in vault and save only if it is not available
         try:
-            vault_list = Vault.get_file_info(container_id=container_id)
+            _, _, vault_meta_info = ph_rules.vault_info(container_id=container_id)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         # Iterate through each vault item in the container and compare name and size of file
-        for vault in vault_list:
+        for vault in vault_meta_info:
             if vault.get('name') == filename and vault.get('size') == os.path.getsize(file_path):
                 self.send_progress(consts.NETWITNESS_REPORT_ALREADY_AVAILABLE)
                 vault_details = {phantom.APP_JSON_SIZE: vault.get('size'),
@@ -359,20 +369,18 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # check the vault for a file with the supplied ID
         try:
-            file_path = Vault.get_file_path(vault_id)
+            success, message, vault_meta_info = ph_rules.vault_info(vault_id=vault_id)
+            if not success:
+                return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(message))
+            file_info = list(vault_meta_info)[0]
+            file_path = file_info.get('path')
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
         if (not file_path):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
 
-        try:
-            file_info = Vault.get_file_info(vault_id)[0]
-        except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
-
         upfile = open(file_path, 'rb')
-
         endpoint = '/decoder/parsers/upload'
 
         ret_val, response = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
@@ -427,15 +435,15 @@ if __name__ == '__main__':
     # pudb.set_trace()
 
     if len(sys.argv) < 2:
-        print 'No test json specified as input'
+        print('No test json specified as input')
         exit(0)
     with open(sys.argv[1]) as f:
         in_json = f.read()
         in_json = json.loads(in_json)
-        print json.dumps(in_json, indent=4)
+        print(json.dumps(in_json, indent=4))
         connector = NetWitnessConnector()
         connector.print_progress_message = True
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print json.dumps(json.loads(ret_val), indent=4)
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)

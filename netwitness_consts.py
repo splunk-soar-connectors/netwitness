@@ -1,7 +1,7 @@
 # File: netwitness_consts.py
-# Copyright (c) 2017-2018 Splunk Inc.
+# Copyright (c) 2017-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
 
 NETWITNESS_ERR_BAD_RANGE = 'Session ID parameter has a bad range - smaller number should come first'
@@ -59,4 +59,6 @@ NETWITNESS_CAP_TYPE_LOG = 'log'
 
 NETWITNESS_BAD_CAP_HASHES = [ '2d59f05b63bda3d74db5685834e137911c7279f282f0d595ac465fd3b97e348f',
                               '8eba672603c531f466c75ca729b66378b92271d78ef1570574757cd5fd8244e6']
-NETWITNESS_BAD_CAP_SIZES = [ 77, 41 ]
+
+# Updating bad CAP sizes for Python 3 support
+NETWITNESS_BAD_CAP_SIZES = [ 73, 37 ]
