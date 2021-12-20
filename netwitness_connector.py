@@ -266,7 +266,7 @@ class NetWitnessConnector(phantom.BaseConnector):
                 except Exception as e:
                     return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_INVALID_PARAM.format(message=e))
 
-                query += ' && time="{0}"="{1}"'.format(time1, time2)
+                query += ' && time="{0}"-"{1}"'.format(time1, time2)
 
             data = {'where': query}
 

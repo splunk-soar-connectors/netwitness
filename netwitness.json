@@ -7,15 +7,15 @@
     "type": "investigative",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
     "main_module": "netwitness_connector.py",
-    "app_version": "2.0.2",
+    "app_version": "2.0.3",
     "utctime_updated": "2021-07-28T12:26:41.000000Z",
     "product_vendor": "RSA",
     "product_name": "NetWitness Logs and Packets",
     "product_version_regex": ".*",
     "python_version": "3",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "5.0.0",
     "latest_tested_versions": [
-        "RSA NetWitness v10.6.0.0.22075-5"
+        "RSA NetWitness v11.7"
     ],
     "logo": "logo_rsa.svg",
     "logo_dark": "logo_rsa_dark.svg",
