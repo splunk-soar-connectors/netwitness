@@ -142,20 +142,20 @@ class NetWitnessConnector(phantom.BaseConnector):
         :return: status success/failure
         """
 
-        action_result = phantom.ActionResult()
+        action_result = self.add_action_result(phantom.ActionResult(dict(param)))
         self.save_progress(consts.NETWITNESS_CONNECTION_TEST_MSG)
         self.save_progress("Configured URL: {}".format(self._base_url))
 
-        rest_ret_val, resp = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT)
+        rest_ret_val, _ = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT)
 
         if phantom.is_fail(rest_ret_val):
             self.save_progress(action_result.get_message())
             self.set_status(phantom.APP_ERROR, consts.NETWITNESS_TEST_CONNECTIVITY_FAIL)
             return action_result.get_status()
 
-        self.set_status_save_progress(phantom.APP_SUCCESS, consts.NETWITNESS_TEST_CONNECTIVITY_PASS)
+        self.save_progress(consts.NETWITNESS_TEST_CONNECTIVITY_PASS)
 
-        return action_result.get_status()
+        return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_TEST_CONNECTIVITY_PASS)
 
     def _move_file_to_vault(self, container_id, file_size, type_str, local_file_path, action_result):
         """ Moves the downloaded file to vault.
@@ -391,7 +391,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         upfile = open(file_path, 'rb')
         endpoint = '/decoder/parsers/upload'
 
-        ret_val, response = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
+        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
 
         if not ret_val:
             return ret_val
@@ -405,7 +405,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         endpoint = '/sys?msg=shutdown'
 
-        ret_val, response = self._make_rest_call(action_result, endpoint=endpoint)
+        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint)
 
         if phantom.is_fail(ret_val):
             return ret_val

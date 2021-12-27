@@ -7,7 +7,7 @@
     "type": "investigative",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
     "main_module": "netwitness_connector.py",
-    "app_version": "2.0.3",
+    "app_version": "2.1.0",
     "utctime_updated": "2021-07-28T12:26:41.000000Z",
     "product_vendor": "RSA",
     "product_name": "NetWitness Logs and Packets",
@@ -134,18 +134,18 @@
                     "data_type": "string"
                 },
                 {
-                    "column_name": "File Name",
                     "data_path": "action_result.data.*.file_name",
                     "data_type": "string",
                     "contains": [
                         "file name"
                     ],
+                    "column_name": "File Name",
                     "column_order": 0
                 },
                 {
-                    "column_name": "File Size",
                     "data_path": "action_result.data.*.size",
                     "data_type": "numeric",
+                    "column_name": "File Size",
                     "column_order": 2
                 },
                 {
@@ -153,17 +153,21 @@
                     "data_type": "string"
                 },
                 {
-                    "column_name": "Vault ID",
                     "data_path": "action_result.data.*.vault_id",
                     "data_type": "string",
                     "contains": [
                         "vault id"
                     ],
+                    "column_name": "Vault ID",
                     "column_order": 1
                 },
                 {
                     "data_path": "action_result.summary.file_availability",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -171,11 +175,17 @@
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ]
         },
@@ -189,13 +199,13 @@
             "versions": "EQ(*)",
             "parameters": {
                 "session_ids": {
-                    "primary": true,
                     "description": "Session IDs in a list (72,637,1298...), as a range (0-9999), or singly (485)",
                     "data_type": "string",
                     "contains": [
                         "netwitness session ids"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "primary": true
                 },
                 "query": {
                     "description": "A where query using configured meta keys",
@@ -222,7 +232,7 @@
                 "width": 12,
                 "height": 5,
                 "type": "table",
-                "title": "Get Pcap"
+                "title": "Get Log"
             },
             "output": [
                 {
@@ -257,18 +267,18 @@
                     "data_type": "string"
                 },
                 {
-                    "column_name": "File Name",
                     "data_path": "action_result.data.*.file_name",
                     "data_type": "string",
                     "contains": [
                         "file name"
                     ],
+                    "column_name": "File Name",
                     "column_order": 0
                 },
                 {
-                    "column_name": "File Size",
                     "data_path": "action_result.data.*.size",
                     "data_type": "numeric",
+                    "column_name": "File Size",
                     "column_order": 2
                 },
                 {
@@ -276,17 +286,21 @@
                     "data_type": "string"
                 },
                 {
-                    "column_name": "Vault ID",
                     "data_path": "action_result.data.*.vault_id",
                     "data_type": "string",
                     "contains": [
                         "vault id"
                     ],
+                    "column_name": "Vault ID",
                     "column_order": 1
                 },
                 {
                     "data_path": "action_result.summary.file_availability",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -294,11 +308,17 @@
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ]
         },
@@ -311,13 +331,13 @@
             "versions": "EQ(*)",
             "parameters": {
                 "vault_id": {
-                    "primary": true,
-                    "required": true,
                     "description": "Vault ID of parser/feed to upload",
                     "data_type": "string",
                     "contains": [
                         "vault id"
                     ],
+                    "primary": true,
+                    "required": true,
                     "order": 0
                 }
             },
@@ -351,11 +371,17 @@
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ]
         },
