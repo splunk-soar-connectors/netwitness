@@ -12,21 +12,21 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
-import re
-import os
-import sys
-import uuid
+import hashlib
 import json
+import os
+import re
 import shutil
 import signal
-import hashlib
+import sys
 import tempfile
-import requests
+import uuid
 from datetime import datetime
 
 # Phantom imports
 import phantom.app as phantom
 import phantom.rules as ph_rules
+import requests
 
 # Local imports
 import netwitness_consts as consts
