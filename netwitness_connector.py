@@ -87,7 +87,8 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return bool(match)
 
-    def _make_rest_call(self, action_result, endpoint=None, data=None, method=requests.get, files={}, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
+    def _make_rest_call(self, action_result, endpoint=None, data=None, method=requests.get,
+                         files=None, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
         """ Function that makes the REST call to the device. It's a generic function that can be called from various
         action handlers.
 
@@ -99,13 +100,16 @@ class NetWitnessConnector(phantom.BaseConnector):
         """
 
         api_url = "{}{}".format(self._base_url, endpoint) if endpoint else self._base_url
+        if files is None:
+            files = {}
 
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(timeout)
 
         # Make the call
         try:
-            rest_resp = method(api_url, auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files)
+            rest_resp = method(api_url,    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                            auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files)
         except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
@@ -124,7 +128,8 @@ class NetWitnessConnector(phantom.BaseConnector):
             action_result.add_debug_data({'r_headers': rest_resp.headers})
 
         if rest_resp.status_code in error_resp_dict:
-            self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]))
+            self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code,
+                            detail=error_resp_dict[rest_resp.status_code]))
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
                                              status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]), rest_resp
 
@@ -146,7 +151,8 @@ class NetWitnessConnector(phantom.BaseConnector):
         self.save_progress(consts.NETWITNESS_CONNECTION_TEST_MSG)
         self.save_progress("Configured URL: {}".format(self._base_url))
 
-        rest_ret_val, _ = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT)
+        rest_ret_val, _ = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP,
+                        timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT)
 
         if phantom.is_fail(rest_ret_val):
             self.save_progress(action_result.get_message())
@@ -184,7 +190,8 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Adding file to vault
         try:
-            success, message, vault_id = ph_rules.vault_add(file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_details)
+            success, message, vault_id = ph_rules.vault_add(file_location=local_file_path, container=container_id,
+                                        file_name=file_name, metadata=vault_details)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
 
@@ -444,7 +451,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 2:
         print('No test json specified as input')
-        exit(0)
+        sys.exit(0)
     with open(sys.argv[1]) as f:
         in_json = f.read()
         in_json = json.loads(in_json)
@@ -454,4 +461,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
