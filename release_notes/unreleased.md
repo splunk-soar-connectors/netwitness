@@ -1,3 +1,3 @@
 **Unreleased**
 
-* Fixed an issue in the get pcap action [PAPP-21456]
+* Fixed wrong formatted timeframe params when provided with query in the get pcap action [PAPP-21456]
