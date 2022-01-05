@@ -2,7 +2,7 @@
 # NetWitness Logs and Packets
 
 Publisher: Splunk  
-Connector Version: 2\.1\.1  
+Connector Version: 2\.1\.2  
 Product Vendor: RSA  
 Product Name: NetWitness Logs and Packets  
 Product Version Supported (regex): "\.\*"  
