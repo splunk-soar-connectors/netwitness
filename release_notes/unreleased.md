@@ -1,1 +1,2 @@
 **Unreleased**
+* Updated REST handler for better handling of optional parameters [PAPP-27139]
