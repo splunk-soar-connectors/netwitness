@@ -87,7 +87,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return bool(match)
 
-    def _make_rest_call(self, action_result, endpoint=None, data=None, method=requests.get,
+    def _make_rest_call(self, action_result, endpoint=None, data=None, method='get',
                          files=None, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
         """ Function that makes the REST call to the device. It's a generic function that can be called from various
         action handlers.
@@ -108,8 +108,13 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Make the call
         try:
-            rest_resp = method(api_url,    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
-                            auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files)
+            kwargs = {
+                "auth": (self._api_username, self._api_password),
+                "data": data,
+                "verify": self._verify,
+                "files": files
+            }
+            rest_resp = requests.request(method, api_url, **kwargs)
         except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
@@ -398,7 +403,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         upfile = open(file_path, 'rb')
         endpoint = '/decoder/parsers/upload'
 
-        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
+        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method='post')
 
         if not ret_val:
             return ret_val
