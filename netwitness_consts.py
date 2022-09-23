@@ -50,7 +50,7 @@ NETWITNESS_TEST_CONNECTIVITY_FAIL = 'Connectivity test failed'
 
 NETWITNESS_CONFIG_VERIFY = 'verify_server_cert'
 NETWITNESS_CONFIG_API_USERNAME = 'username'
-NETWITNESS_CONFIG_API_PASSWORD = 'password'
+NETWITNESS_CONFIG_API_PASSWORD = 'password'  # pragma: allowlist secret
 NETWITNESS_CONFIG_SERVER = 'url'
 
 NETWITNESS_JSON_START_TIME = 'start_time'
@@ -65,8 +65,8 @@ NETWITNESS_DEFAULT_TEST_TIMEOUT = 30
 NETWITNESS_CAP_TYPE_PACKET = 'pcap'
 NETWITNESS_CAP_TYPE_LOG = 'log'
 
-NETWITNESS_BAD_CAP_HASHES = [ '2d59f05b63bda3d74db5685834e137911c7279f282f0d595ac465fd3b97e348f',
-                              '8eba672603c531f466c75ca729b66378b92271d78ef1570574757cd5fd8244e6']
+NETWITNESS_BAD_CAP_HASHES = [ '2d59f05b63bda3d74db5685834e137911c7279f282f0d595ac465fd3b97e348f',  # pragma: allowlist secret
+                              '8eba672603c531f466c75ca729b66378b92271d78ef1570574757cd5fd8244e6']  # pragma: allowlist secret
 
 # Updating bad CAP sizes for Python 3 support
 NETWITNESS_BAD_CAP_SIZES = [ 73, 37 ]
