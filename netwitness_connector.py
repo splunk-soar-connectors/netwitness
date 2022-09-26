@@ -114,7 +114,7 @@ class NetWitnessConnector(phantom.BaseConnector):
                 "verify": self._verify,
                 "files": files
             }
-            rest_resp = requests.request(method, api_url, **kwargs)
+            rest_resp = requests.request(method, api_url, **kwargs)  # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
         except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
