@@ -70,3 +70,6 @@ NETWITNESS_BAD_CAP_HASHES = [ '2d59f05b63bda3d74db5685834e137911c7279f282f0d595a
 
 # Updating bad CAP sizes for Python 3 support
 NETWITNESS_BAD_CAP_SIZES = [ 73, 37 ]
+
+# Constants relating to '_get_error_message_from_exception'
+NETWITNESS_ERR_MSG_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
