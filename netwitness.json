@@ -365,7 +365,7 @@
                     "contains": [
                         "vault id"
                     ],
-                    "column_name": "File Name",
+                    "column_name": "Vault ID",
                     "column_order": 0
                 },
                 {
