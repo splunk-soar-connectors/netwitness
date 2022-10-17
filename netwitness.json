@@ -342,6 +342,12 @@
                     "order": 0
                 }
             },
+            "render": {
+                "width": 12,
+                "height": 5,
+                "type": "table",
+                "title": "Upload File"
+            },
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -349,14 +355,18 @@
                     "example_values": [
                         "success",
                         "failed"
-                    ]
+                    ],
+                    "column_name": "Status",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.parameter.vault_id",
                     "data_type": "string",
                     "contains": [
                         "vault id"
-                    ]
+                    ],
+                    "column_name": "File Name",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data",
@@ -393,6 +403,12 @@
             "identifier": "restart_device",
             "read_only": false,
             "parameters": {},
+            "render": {
+                "width": 12,
+                "height": 5,
+                "type": "table",
+                "title": "Restart Device"
+            },
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -400,7 +416,9 @@
                     "example_values": [
                         "success",
                         "failed"
-                    ]
+                    ],
+                    "column_name": "Status",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data",
