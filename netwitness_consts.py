@@ -30,6 +30,7 @@ NETWITNESS_REPORT_ALREADY_AVAILABLE = 'Report already available in vault'
 NETWITNESS_CAP_TYPE_DICT = {'log': 'application/json', 'pcap': 'pcap'}
 NETWITNESS_SUCC_FILE_ADD_TO_VAULT = 'Successfully added file to Vault'
 NETWITNESS_SUCC_UPLOAD = 'Feed/Parser file successfully uploaded'
+NETWITNESS_SUCC_RESTART = 'Device successfully restarted'
 NETWITNESS_FILE_TYPE_DICT = {'pcap': 'pcap', 'log': 'json'}
 NETWITNESS_INVALID_PARAM = 'Invalid parameters: {message}'
 NETWITNESS_EXCEPTION_OCCURRED = 'Exception occurred'

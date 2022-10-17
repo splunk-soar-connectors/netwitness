@@ -148,9 +148,9 @@ class NetWitnessConnector(phantom.BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
             if 'Connection timed out' in str(e):
-                self.error_print(consts.NETWITNESS_ERR_TIMEOUT)
+                self.error_print(consts.NETWITNESS_ERR_TIMEOUT, e)
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
-            self.error_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
+            self.error_print(consts.NETWITNESS_ERR_SERVER_CONNECTION, e)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
         finally:
             signal.alarm(0)
@@ -364,7 +364,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             with open(file_path, 'wb') as file_obj:
                 file_obj.write(rest_resp)
         except Exception as e:
-            self.error_print(consts.NETWITNESS_FILE_ERROR)
+            self.error_print(consts.NETWITNESS_FILE_ERROR, e)
             shutil.rmtree(temp_dir)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERROR, e)
 
@@ -454,7 +454,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        return action_result.set_status(phantom.APP_SUCCESS)
+        return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_SUCC_RESTART)
 
     def handle_action(self, param):
         """ This function gets current action identifier and calls member function of it's own to handle the action.
