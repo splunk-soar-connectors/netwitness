@@ -87,7 +87,36 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return bool(match)
 
-    def _make_rest_call(self, action_result, endpoint=None, data=None, method=requests.get,
+    def _get_error_message_from_exception(self, e):
+        """
+        Get appropriate error message from the exception.
+        :param e: Exception object
+        :return: error message
+        """
+
+        error_code = None
+        error_msg = consts.NETWITNESS_ERR_MSG_UNAVAILABLE
+
+        self.error_print("Error occurred.", e)
+
+        try:
+            if hasattr(e, "args"):
+                if len(e.args) > 1:
+                    error_code = e.args[0]
+                    error_msg = e.args[1]
+                elif len(e.args) == 1:
+                    error_msg = e.args[0]
+        except Exception as e:
+            self.error_print("Error occurred while fetching exception information. Details: {}".format(str(e)))
+
+        if not error_code:
+            error_text = "Error Message: {}".format(error_msg)
+        else:
+            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+
+        return error_text
+
+    def _make_rest_call(self, action_result, endpoint=None, data=None, method='get',
                          files=None, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
         """ Function that makes the REST call to the device. It's a generic function that can be called from various
         action handlers.
@@ -108,15 +137,20 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Make the call
         try:
-            rest_resp = method(api_url,    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
-                            auth=(self._api_username, self._api_password), data=data, verify=self._verify, files=files)
+            kwargs = {
+                "auth": (self._api_username, self._api_password),
+                "data": data,
+                "verify": self._verify,
+                "files": files
+            }
+            rest_resp = requests.request(method, api_url, **kwargs)  # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
         except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
             if 'Connection timed out' in str(e):
-                self.debug_print(consts.NETWITNESS_ERR_TIMEOUT)
+                self.error_print(consts.NETWITNESS_ERR_TIMEOUT, e)
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
-            self.debug_print(consts.NETWITNESS_ERR_SERVER_CONNECTION)
+            self.error_print(consts.NETWITNESS_ERR_SERVER_CONNECTION, e)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_SERVER_CONNECTION, e), None
         finally:
             signal.alarm(0)
@@ -193,7 +227,8 @@ class NetWitnessConnector(phantom.BaseConnector):
             success, message, vault_id = ph_rules.vault_add(file_location=local_file_path, container=container_id,
                                         file_name=file_name, metadata=vault_details)
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
+            msg = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(msg))
 
         # Updating report data with vault details
         if success:
@@ -329,7 +364,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             with open(file_path, 'wb') as file_obj:
                 file_obj.write(rest_resp)
         except Exception as e:
-            self.debug_print(consts.NETWITNESS_FILE_ERROR)
+            self.error_print(consts.NETWITNESS_FILE_ERROR, e)
             shutil.rmtree(temp_dir)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERROR, e)
 
@@ -339,7 +374,8 @@ class NetWitnessConnector(phantom.BaseConnector):
         try:
             _, _, vault_meta_info = ph_rules.vault_info(container_id=container_id)
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
+            msg = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(msg))
 
         # Iterate through each vault item in the container and compare name and size of file
         for vault in vault_meta_info:
@@ -390,7 +426,8 @@ class NetWitnessConnector(phantom.BaseConnector):
             file_info = list(vault_meta_info)[0]
             file_path = file_info.get('path')
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(str(e)))
+            msg = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(msg))
 
         if (not file_path):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
@@ -398,7 +435,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         upfile = open(file_path, 'rb')
         endpoint = '/decoder/parsers/upload'
 
-        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method=requests.post)
+        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method='post')
 
         if not ret_val:
             return ret_val
@@ -417,7 +454,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        return action_result.set_status(phantom.APP_SUCCESS)
+        return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_SUCC_RESTART)
 
     def handle_action(self, param):
         """ This function gets current action identifier and calls member function of it's own to handle the action.

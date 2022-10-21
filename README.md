@@ -2,24 +2,24 @@
 # NetWitness Logs and Packets
 
 Publisher: Splunk  
-Connector Version: 2\.1\.2  
+Connector Version: 2\.2\.0  
 Product Vendor: RSA  
 Product Name: NetWitness Logs and Packets  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.0\.0  
+Minimum Product Version: 5\.3\.4  
 
 This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets
 
-[comment]: # " File: readme.md"
-[comment]: # "  "
+[comment]: # " File: README.md"
+[comment]: # ""
 [comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
 [comment]: # ""
 [comment]: # "  Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "  you may not use this file except in compliance with the License."
 [comment]: # ""
-[comment]: # "  You may obtain a copy of the License at  "
-[comment]: # "      http://www.apache.org/licenses/LICENSE-2.0   "
-[comment]: # "  "
+[comment]: # "  You may obtain a copy of the License at"
+[comment]: # "      http://www.apache.org/licenses/LICENSE-2.0"
+[comment]: # ""
 [comment]: # "  Unless required by applicable law or agreed to in writing, software distributed under"
 [comment]: # "  the License is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,"
 [comment]: # "  either express or implied. See the License for the specific language governing permissions"
