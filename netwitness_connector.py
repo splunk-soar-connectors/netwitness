@@ -167,7 +167,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
                                              status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]), rest_resp
 
-        if rest_resp.status_code == consts.NETWITNESS_REST_RESP_SUCCESS:
+        if rest_resp.status_code == consts.NETWITNESS_REST_RESP_SUCC:
             return phantom.APP_SUCCESS, rest_resp
 
         # All other rest_resp codes from Rest call are errors
@@ -364,9 +364,9 @@ class NetWitnessConnector(phantom.BaseConnector):
             with open(file_path, 'wb') as file_obj:
                 file_obj.write(rest_resp)
         except Exception as e:
-            self.error_print(consts.NETWITNESS_FILE_ERROR, e)
+            self.error_print(consts.NETWITNESS_FILE_ERR, e)
             shutil.rmtree(temp_dir)
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERROR, e)
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERR, e)
 
         container_id = self.get_container_id()
 
