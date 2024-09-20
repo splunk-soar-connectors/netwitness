@@ -6,7 +6,7 @@ Connector Version: 2.2.0
 Product Vendor: RSA  
 Product Name: NetWitness Logs and Packets  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.3.4  
+Minimum Product Version: 6.2.1  
 
 This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets
 
