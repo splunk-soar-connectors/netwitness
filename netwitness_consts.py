@@ -68,8 +68,8 @@ NETWITNESS_CAP_TYPE_LOG = "log"
 
 NETWITNESS_BAD_CAP_HASHES = [
     "2d59f05b63bda3d74db5685834e137911c7279f282f0d595ac465fd3b97e348f",  # pragma: allowlist secret
-    "8eba672603c531f466c75ca729b66378b92271d78ef1570574757cd5fd8244e6",
-]  # pragma: allowlist secret
+    "8eba672603c531f466c75ca729b66378b92271d78ef1570574757cd5fd8244e6",  # pragma: allowlist secret
+]
 
 # Updating bad CAP sizes for Python 3 support
 NETWITNESS_BAD_CAP_SIZES = [73, 37]
