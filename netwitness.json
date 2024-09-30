@@ -5,15 +5,15 @@
     "publisher": "Splunk",
     "package_name": "phantom_netwitness",
     "type": "investigative",
-    "license": "Copyright (c) 2017-2022 Splunk Inc.",
+    "license": "Copyright (c) 2017-2024 Splunk Inc.",
     "main_module": "netwitness_connector.py",
-    "app_version": "2.2.0",
-    "utctime_updated": "2022-01-07T20:32:20.000000Z",
+    "app_version": "2.2.1",
+    "utctime_updated": "2024-09-30T06:21:40.000000Z",
     "product_vendor": "RSA",
     "product_name": "NetWitness Logs and Packets",
     "product_version_regex": ".*",
     "python_version": "3",
-    "min_phantom_version": "5.3.4",
+    "min_phantom_version": "6.2.1",
     "fips_compliant": true,
     "latest_tested_versions": [
         "RSA NetWitness v11.7"
@@ -449,29 +449,5 @@
             ],
             "versions": "EQ(*)"
         }
-    ],
-    "pip_dependencies": {
-        "wheel": [
-            {
-                "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.9.24-py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
-            }
-        ]
-    }
+    ]
 }
