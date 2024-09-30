@@ -34,7 +34,7 @@ import netwitness_consts as consts
 error_resp_dict = {
     consts.NETWITNESS_REST_RESP_BAD_REQUEST: consts.NETWITNESS_REST_RESP_BAD_REQUEST_MSG,
     consts.NETWITNESS_REST_RESP_UNAUTHORIZED: consts.NETWITNESS_REST_RESP_UNAUTHORIZED_MSG,
-    consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND: consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND_MSG
+    consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND: consts.NETWITNESS_REST_RESP_RESOURCE_NOT_FOUND_MSG,
 }
 
 
@@ -47,7 +47,7 @@ class Timeout(Exception):
 
 
 class NetWitnessConnector(phantom.BaseConnector):
-    """ This is AppConnector class that inherits the BaseConnector class. It implements various actions supported by
+    """This is AppConnector class that inherits the BaseConnector class. It implements various actions supported by
     RSA SA device and helper methods required to run the actions.
     """
 
@@ -61,7 +61,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return
 
     def initialize(self):
-        """ This is an optional function that can be implemented by the AppConnector derived class. Since the
+        """This is an optional function that can be implemented by the AppConnector derived class. Since the
         configuration dictionary is already validated by the time this function is called, it's a good place to do any
         extra initialization of any internal modules. This function MUST return a value of either phantom.APP_SUCCESS or
         phantom.APP_ERROR. If this function returns phantom.APP_ERROR, then AppConnector::handle_action will not get
@@ -72,7 +72,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Initialize parameters
         self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, False)
-        self._base_url = config[consts.NETWITNESS_CONFIG_SERVER].strip('/')
+        self._base_url = config[consts.NETWITNESS_CONFIG_SERVER].strip("/")
         self._api_username = config[consts.NETWITNESS_CONFIG_API_USERNAME]
         self._api_password = config[consts.NETWITNESS_CONFIG_API_PASSWORD]
 
@@ -81,7 +81,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return phantom.APP_SUCCESS
 
     def _verify_session_ids(self, param):
-        """ This function validates the session_ids parameter. It makes sure it is a list of IDs or an ID range """
+        """This function validates the session_ids parameter. It makes sure it is a list of IDs or an ID range"""
 
         match = re.match("^ *[0-9]+ *(, *[0-9]+ *)*$|^ *[0-9]+ *- *[0-9]+ *$", param)
 
@@ -116,9 +116,8 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         return error_text
 
-    def _make_rest_call(self, action_result, endpoint=None, data=None, method='get',
-                         files=None, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
-        """ Function that makes the REST call to the device. It's a generic function that can be called from various
+    def _make_rest_call(self, action_result, endpoint=None, data=None, method="get", files=None, timeout=consts.NETWITNESS_DEFAULT_REST_TIMEOUT):
+        """Function that makes the REST call to the device. It's a generic function that can be called from various
         action handlers.
 
         :param action_result: object of ActionResult class
@@ -137,17 +136,12 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Make the call
         try:
-            kwargs = {
-                "auth": (self._api_username, self._api_password),
-                "data": data,
-                "verify": self._verify,
-                "files": files
-            }
+            kwargs = {"auth": (self._api_username, self._api_password), "data": data, "verify": self._verify, "files": files}
             rest_resp = requests.request(method, api_url, **kwargs)  # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
         except Timeout:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
         except Exception as e:
-            if 'Connection timed out' in str(e):
+            if "Connection timed out" in str(e):
                 self.error_print(consts.NETWITNESS_ERR_TIMEOUT, e)
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_TIMEOUT), None
             self.error_print(consts.NETWITNESS_ERR_SERVER_CONNECTION, e)
@@ -156,26 +150,41 @@ class NetWitnessConnector(phantom.BaseConnector):
             signal.alarm(0)
 
         # store the response text in debug data, it will get dumped in the logs if an error occurs
-        if hasattr(action_result, 'add_debug_data'):
-            action_result.add_debug_data({'r_status_code': rest_resp.status_code})
-            action_result.add_debug_data({'r_text': rest_resp.text})
-            action_result.add_debug_data({'r_headers': rest_resp.headers})
+        if hasattr(action_result, "add_debug_data"):
+            action_result.add_debug_data({"r_status_code": rest_resp.status_code})
+            action_result.add_debug_data({"r_text": rest_resp.text})
+            action_result.add_debug_data({"r_headers": rest_resp.headers})
 
         if rest_resp.status_code in error_resp_dict:
-            self.debug_print(consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code,
-                            detail=error_resp_dict[rest_resp.status_code]))
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER,
-                                             status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code]), rest_resp
+            self.debug_print(
+                consts.NETWITNESS_ERR_FROM_SERVER.format(status=rest_resp.status_code, detail=error_resp_dict[rest_resp.status_code])
+            )
+            return (
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    consts.NETWITNESS_ERR_FROM_SERVER,
+                    status=rest_resp.status_code,
+                    detail=error_resp_dict[rest_resp.status_code],
+                ),
+                rest_resp,
+            )
 
-        if rest_resp.status_code == consts.NETWITNESS_REST_RESP_SUCCESS:
+        if rest_resp.status_code == consts.NETWITNESS_REST_RESP_SUCC:
             return phantom.APP_SUCCESS, rest_resp
 
         # All other rest_resp codes from Rest call are errors
-        return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_FROM_SERVER, status=rest_resp.status_code,
-                                         detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG), rest_resp
+        return (
+            action_result.set_status(
+                phantom.APP_ERROR,
+                consts.NETWITNESS_ERR_FROM_SERVER,
+                status=rest_resp.status_code,
+                detail=consts.NETWITNESS_REST_RESP_OTHER_ERR_MSG,
+            ),
+            rest_resp,
+        )
 
     def _test_connectivity(self, param):
-        """ This function tests the connectivity with RSA SA with the provided credentials.
+        """This function tests the connectivity with RSA SA with the provided credentials.
 
         :param param:
         :return: status success/failure
@@ -185,8 +194,9 @@ class NetWitnessConnector(phantom.BaseConnector):
         self.save_progress(consts.NETWITNESS_CONNECTION_TEST_MSG)
         self.save_progress("Configured URL: {}".format(self._base_url))
 
-        rest_ret_val, _ = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP,
-                        timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT)
+        rest_ret_val, _ = self._make_rest_call(
+            action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT
+        )
 
         if phantom.is_fail(rest_ret_val):
             self.save_progress(action_result.get_message())
@@ -198,7 +208,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_TEST_CONNECTIVITY_PASS)
 
     def _move_file_to_vault(self, container_id, file_size, type_str, local_file_path, action_result):
-        """ Moves the downloaded file to vault.
+        """Moves the downloaded file to vault.
 
         :param container_id: ID of the container in which we need to add vault file
         :param file_size: size of file
@@ -215,8 +225,11 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         file_details = {phantom.APP_JSON_SIZE: file_size, phantom.APP_JSON_TYPE: type_str}
 
-        vault_details = {phantom.APP_JSON_CONTAINS: [type_str], phantom.APP_JSON_ACTION_NAME: self.get_action_name(),
-                         phantom.APP_JSON_APP_RUN_ID: self.get_app_run_id()}
+        vault_details = {
+            phantom.APP_JSON_CONTAINS: [type_str],
+            phantom.APP_JSON_ACTION_NAME: self.get_action_name(),
+            phantom.APP_JSON_APP_RUN_ID: self.get_app_run_id(),
+        }
 
         vault_details.update(file_details)
 
@@ -224,8 +237,9 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Adding file to vault
         try:
-            success, message, vault_id = ph_rules.vault_add(file_location=local_file_path, container=container_id,
-                                        file_name=file_name, metadata=vault_details)
+            success, message, vault_id = ph_rules.vault_add(
+                file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_details
+            )
         except Exception as e:
             msg = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(msg))
@@ -239,15 +253,15 @@ class NetWitnessConnector(phantom.BaseConnector):
             return phantom.APP_SUCCESS
 
         # Error while adding file to vault
-        self.debug_print('ERROR: Adding file to vault:', message)
-        action_result.append_to_message('. {}'.format(message))
+        self.debug_print("ERROR: Adding file to vault:", message)
+        action_result.append_to_message(". {}".format(message))
 
         # set the action_result status to error, the handler function
         # will most probably return as is
         return phantom.APP_ERROR
 
     def _check_for_bad_cap(self, cap):
-        """ The API sometimes returns an empty or corrupted capture when there is no capture data """
+        """The API sometimes returns an empty or corrupted capture when there is no capture data"""
 
         if not cap:
             return True
@@ -266,7 +280,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return False
 
     def _get_capture(self, param, cap_type):
-        """ Download a capture file from RSA NetWitness based on given criteria """
+        """Download a capture file from RSA NetWitness based on given criteria"""
 
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
         summary_data = action_result.update_summary({})
@@ -282,21 +296,21 @@ class NetWitnessConnector(phantom.BaseConnector):
         if not (session_id or query or (time1 and time2)):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_BAD_PARAMS)
 
-        if session_id and '-' in session_id:
-            num_list = list(map(int, session_id.split('-')))
+        if session_id and "-" in session_id:
+            num_list = list(map(int, session_id.split("-")))
             if num_list[0] > num_list[1]:
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_BAD_RANGE)
 
         if session_id:
 
-            data = {'sessions': session_id}
+            data = {"sessions": session_id}
 
             if query:
-                data['where'] = query
+                data["where"] = query
 
             # Set filename
             if not filename:
-                filename = 'netwitness-{0}'.format(session_id.replace(',', '_')[:50])
+                filename = "netwitness-{0}".format(session_id.replace(",", "_")[:50])
 
         elif query:
 
@@ -310,11 +324,11 @@ class NetWitnessConnector(phantom.BaseConnector):
 
                 query += ' && time="{0}"-"{1}"'.format(time1, time2)
 
-            data = {'where': query}
+            data = {"where": query}
 
             # Set filename
             if not filename:
-                filename = 'netwitness-{0}'.format(uuid.uuid4())
+                filename = "netwitness-{0}".format(uuid.uuid4())
 
         elif time1 and time2:
 
@@ -328,17 +342,17 @@ class NetWitnessConnector(phantom.BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_REVERSE_TIMES)
 
             # Prepare request body
-            data = {'time1': time1, 'time2': time2}
+            data = {"time1": time1, "time2": time2}
 
             # Set filename
             if not filename:
-                filename = ('netwitness-{0}_{1}'.format(time1, time2)).replace('/', '-')
+                filename = ("netwitness-{0}_{1}".format(time1, time2)).replace("/", "-")
 
-        if not (filename.endswith('.pcap') or filename.endswith('.json')):
-            filename = '{0}.{1}'.format(filename, consts.NETWITNESS_FILE_TYPE_DICT[cap_type])
+        if not (filename.endswith(".pcap") or filename.endswith(".json")):
+            filename = "{0}.{1}".format(filename, consts.NETWITNESS_FILE_TYPE_DICT[cap_type])
 
         # Set the cap type in the request body
-        data['render'] = consts.NETWITNESS_CAP_TYPE_DICT[cap_type]
+        data["render"] = consts.NETWITNESS_CAP_TYPE_DICT[cap_type]
 
         rest_ret_val, resp = self._make_rest_call(action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, data=data)
 
@@ -347,26 +361,26 @@ class NetWitnessConnector(phantom.BaseConnector):
             return rest_ret_val
 
         # Check content-type of response
-        content_type = resp.headers['content-type']
-        if content_type.find('application/octet-stream') != -1 or content_type.find('application/json') != -1:
+        content_type = resp.headers["content-type"]
+        if content_type.find("application/octet-stream") != -1 or content_type.find("application/json") != -1:
             rest_resp = resp.content
         else:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_GET_PCAPS_FAIL)
 
         if self._check_for_bad_cap(rest_resp):
-            summary_data['file_availability'] = False
+            summary_data["file_availability"] = False
             return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_ERR_BAD_CAP)
 
         # Creating file
         try:
             temp_dir = tempfile.mkdtemp()
             file_path = os.path.join(temp_dir, filename)
-            with open(file_path, 'wb') as file_obj:
+            with open(file_path, "wb") as file_obj:
                 file_obj.write(rest_resp)
         except Exception as e:
-            self.error_print(consts.NETWITNESS_FILE_ERROR, e)
+            self.error_print(consts.NETWITNESS_FILE_ERR, e)
             shutil.rmtree(temp_dir)
-            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERROR, e)
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_FILE_ERR, e)
 
         container_id = self.get_container_id()
 
@@ -379,27 +393,30 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Iterate through each vault item in the container and compare name and size of file
         for vault in vault_meta_info:
-            if vault.get('name') == filename and vault.get('size') == os.path.getsize(file_path):
+            if vault.get("name") == filename and vault.get("size") == os.path.getsize(file_path):
                 self.send_progress(consts.NETWITNESS_REPORT_ALREADY_AVAILABLE)
-                vault_details = {phantom.APP_JSON_SIZE: vault.get('size'),
-                                 phantom.APP_JSON_TYPE: consts.NETWITNESS_FILE_TYPE_DICT[cap_type],
-                                 phantom.APP_JSON_VAULT_ID: vault.get(phantom.APP_JSON_VAULT_ID),
-                                 consts.NETWITNESS_JSON_FILE_NAME: filename}
-                summary_data['file_availability'] = True
+                vault_details = {
+                    phantom.APP_JSON_SIZE: vault.get("size"),
+                    phantom.APP_JSON_TYPE: consts.NETWITNESS_FILE_TYPE_DICT[cap_type],
+                    phantom.APP_JSON_VAULT_ID: vault.get(phantom.APP_JSON_VAULT_ID),
+                    consts.NETWITNESS_JSON_FILE_NAME: filename,
+                }
+                summary_data["file_availability"] = True
 
                 shutil.rmtree(temp_dir)
                 action_result.add_data(vault_details)
                 return action_result.set_status(phantom.APP_SUCCESS)
 
-        return_val = self._move_file_to_vault(container_id, os.path.getsize(file_path), consts.NETWITNESS_FILE_TYPE_DICT[cap_type], file_path,
-                                              action_result)
+        return_val = self._move_file_to_vault(
+            container_id, os.path.getsize(file_path), consts.NETWITNESS_FILE_TYPE_DICT[cap_type], file_path, action_result
+        )
         shutil.rmtree(temp_dir)
 
         # Something went wrong while moving file to vault
         if phantom.is_fail(return_val):
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT)
 
-        summary_data['file_availability'] = True
+        summary_data["file_availability"] = True
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _get_pcap(self, param):
@@ -411,7 +428,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return self._get_capture(param, consts.NETWITNESS_CAP_TYPE_LOG)
 
     def _upload_file(self, param):
-        """ This method uploads a parser from the vault to a NetWitness decoder """
+        """This method uploads a parser from the vault to a NetWitness decoder"""
 
         self.debug_print(param)
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
@@ -424,18 +441,18 @@ class NetWitnessConnector(phantom.BaseConnector):
             if not success:
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(message))
             file_info = list(vault_meta_info)[0]
-            file_path = file_info.get('path')
+            file_path = file_info.get("path")
         except Exception as e:
             msg = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(msg))
 
-        if (not file_path):
+        if not file_path:
             return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_NOT_IN_VAULT)
 
-        upfile = open(file_path, 'rb')
-        endpoint = '/decoder/parsers/upload'
+        upfile = open(file_path, "rb")
+        endpoint = "/decoder/parsers/upload"
 
-        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={'file': (file_info['name'], upfile)}, method='post')
+        ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint, files={"file": (file_info["name"], upfile)}, method="post")
 
         if not ret_val:
             return ret_val
@@ -443,11 +460,11 @@ class NetWitnessConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_SUCC_UPLOAD)
 
     def _restart_device(self, param):
-        """ This method restarts the configured device """
+        """This method restarts the configured device"""
 
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
 
-        endpoint = '/sys?msg=shutdown'
+        endpoint = "/sys?msg=shutdown"
 
         ret_val, _ = self._make_rest_call(action_result, endpoint=endpoint)
 
@@ -457,7 +474,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, consts.NETWITNESS_SUCC_RESTART)
 
     def handle_action(self, param):
-        """ This function gets current action identifier and calls member function of it's own to handle the action.
+        """This function gets current action identifier and calls member function of it's own to handle the action.
 
         :param param: dictionary which contains information about the actions to be executed
         :return: status success/failure
@@ -469,7 +486,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             "get_log_capture": self._get_log_capture,
             "restart_device": self._restart_device,
             "upload_file": self._upload_file,
-            "get_pcap": self._get_pcap
+            "get_pcap": self._get_pcap,
         }
 
         action = self.get_action_identifier()
@@ -482,12 +499,12 @@ class NetWitnessConnector(phantom.BaseConnector):
         return return_value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # import pudb
     # pudb.set_trace()
 
     if len(sys.argv) < 2:
-        print('No test json specified as input')
+        print("No test json specified as input")
         sys.exit(0)
     with open(sys.argv[1]) as f:
         in_json = f.read()
