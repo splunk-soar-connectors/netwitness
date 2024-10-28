@@ -1,1 +1,2 @@
 **Unreleased**
+* De-certify and release as Splunk Community App[PAPP-35000]
