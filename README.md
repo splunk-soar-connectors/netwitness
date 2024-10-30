@@ -1,12 +1,12 @@
 [comment]: # "Auto-generated SOAR connector documentation"
 # NetWitness Logs and Packets
 
-Publisher: Splunk  
-Connector Version: 2.2.1  
+Publisher: Splunk Community  
+Connector Version: 3.0.0  
 Product Vendor: RSA  
 Product Name: NetWitness Logs and Packets  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.2.1  
+Minimum Product Version: 6.2.2  
 
 This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets
 
