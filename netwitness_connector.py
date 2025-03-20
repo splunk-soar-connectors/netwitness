@@ -1,6 +1,6 @@
 # File: netwitness_connector.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import requests
 # Local imports
 import netwitness_consts as consts
 
+
 error_resp_dict = {
     consts.NETWITNESS_REST_RESP_BAD_REQUEST: consts.NETWITNESS_REST_RESP_BAD_REQUEST_MSG,
     consts.NETWITNESS_REST_RESP_UNAUTHORIZED: consts.NETWITNESS_REST_RESP_UNAUTHORIZED_MSG,
@@ -52,9 +53,8 @@ class NetWitnessConnector(phantom.BaseConnector):
     """
 
     def __init__(self):
-
         # Call the BaseConnector's init first
-        super(NetWitnessConnector, self).__init__()
+        super().__init__()
         self._base_url = None
         self._api_username = None
         self._api_password = None
@@ -107,12 +107,12 @@ class NetWitnessConnector(phantom.BaseConnector):
                 elif len(e.args) == 1:
                     error_msg = e.args[0]
         except Exception as e:
-            self.error_print("Error occurred while fetching exception information. Details: {}".format(str(e)))
+            self.error_print(f"Error occurred while fetching exception information. Details: {e!s}")
 
         if not error_code:
-            error_text = "Error Message: {}".format(error_msg)
+            error_text = f"Error Message: {error_msg}"
         else:
-            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+            error_text = f"Error Code: {error_code}. Error Message: {error_msg}"
 
         return error_text
 
@@ -127,7 +127,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         :return: status success/failure(along with appropriate message) and response obtained by making an API call
         """
 
-        api_url = "{}{}".format(self._base_url, endpoint) if endpoint else self._base_url
+        api_url = f"{self._base_url}{endpoint}" if endpoint else self._base_url
         if files is None:
             files = {}
 
@@ -192,7 +192,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
         self.save_progress(consts.NETWITNESS_CONNECTION_TEST_MSG)
-        self.save_progress("Configured URL: {}".format(self._base_url))
+        self.save_progress(f"Configured URL: {self._base_url}")
 
         rest_ret_val, _ = self._make_rest_call(
             action_result, endpoint=consts.NETWITNESS_ENDPOINT_GET_CAP, timeout=consts.NETWITNESS_DEFAULT_TEST_TIMEOUT
@@ -254,7 +254,7 @@ class NetWitnessConnector(phantom.BaseConnector):
 
         # Error while adding file to vault
         self.debug_print("ERROR: Adding file to vault:", message)
-        action_result.append_to_message(". {}".format(message))
+        action_result.append_to_message(f". {message}")
 
         # set the action_result status to error, the handler function
         # will most probably return as is
@@ -302,7 +302,6 @@ class NetWitnessConnector(phantom.BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_BAD_RANGE)
 
         if session_id:
-
             data = {"sessions": session_id}
 
             if query:
@@ -310,28 +309,25 @@ class NetWitnessConnector(phantom.BaseConnector):
 
             # Set filename
             if not filename:
-                filename = "netwitness-{0}".format(session_id.replace(",", "_")[:50])
+                filename = "netwitness-{}".format(session_id.replace(",", "_")[:50])
 
         elif query:
-
             if time1 and time2:
-
                 try:
                     datetime.strptime(time1, "%Y-%m-%d %H:%M:%S")
                     datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
                 except Exception as e:
                     return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_INVALID_PARAM.format(message=e))
 
-                query += ' && time="{0}"-"{1}"'.format(time1, time2)
+                query += f' && time="{time1}"-"{time2}"'
 
             data = {"where": query}
 
             # Set filename
             if not filename:
-                filename = "netwitness-{0}".format(uuid.uuid4())
+                filename = f"netwitness-{uuid.uuid4()}"
 
         elif time1 and time2:
-
             try:
                 datetime.strptime(time1, "%Y-%m-%d %H:%M:%S")
                 datetime.strptime(time2, "%Y-%m-%d %H:%M:%S")
@@ -346,10 +342,10 @@ class NetWitnessConnector(phantom.BaseConnector):
 
             # Set filename
             if not filename:
-                filename = ("netwitness-{0}_{1}".format(time1, time2)).replace("/", "-")
+                filename = (f"netwitness-{time1}_{time2}").replace("/", "-")
 
         if not (filename.endswith(".pcap") or filename.endswith(".json")):
-            filename = "{0}.{1}".format(filename, consts.NETWITNESS_FILE_TYPE_DICT[cap_type])
+            filename = f"{filename}.{consts.NETWITNESS_FILE_TYPE_DICT[cap_type]}"
 
         # Set the cap type in the request body
         data["render"] = consts.NETWITNESS_CAP_TYPE_DICT[cap_type]
@@ -420,11 +416,9 @@ class NetWitnessConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _get_pcap(self, param):
-
         return self._get_capture(param, consts.NETWITNESS_CAP_TYPE_PACKET)
 
     def _get_log_capture(self, param):
-
         return self._get_capture(param, consts.NETWITNESS_CAP_TYPE_LOG)
 
     def _upload_file(self, param):
@@ -440,7 +434,7 @@ class NetWitnessConnector(phantom.BaseConnector):
             success, message, vault_meta_info = ph_rules.vault_info(vault_id=vault_id)
             if not success:
                 return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_VAULT_INFO.format(message))
-            file_info = list(vault_meta_info)[0]
+            file_info = next(iter(vault_meta_info))
             file_path = file_info.get("path")
         except Exception as e:
             msg = self._get_error_message_from_exception(e)
