@@ -1,9 +1,9 @@
 # NetWitness Logs and Packets
 
-Publisher: Splunk Community \
-Connector Version: 3.0.0 \
-Product Vendor: RSA \
-Product Name: NetWitness Logs and Packets \
+Publisher: Splunk Community <br>
+Connector Version: 3.0.0 <br>
+Product Vendor: RSA <br>
+Product Name: NetWitness Logs and Packets <br>
 Minimum Product Version: 6.2.2
 
 This app supports investigative actions to collect log and packet captures from RSA NetWitness Logs and Packets
@@ -29,17 +29,17 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the credentials provided for connectivity \
-[get pcap](#action-get-pcap) - Download a packet capture file from Netwitness Logs and Packets and add it to the vault \
-[get log](#action-get-log) - Download a log capture file from Netwitness Logs and Packets and add it to the vault \
-[upload file](#action-upload-file) - Upload a feed or parser file to a NetWitness Decoder \
+[test connectivity](#action-test-connectivity) - Validate the credentials provided for connectivity <br>
+[get pcap](#action-get-pcap) - Download a packet capture file from Netwitness Logs and Packets and add it to the vault <br>
+[get log](#action-get-log) - Download a log capture file from Netwitness Logs and Packets and add it to the vault <br>
+[upload file](#action-upload-file) - Upload a feed or parser file to a NetWitness Decoder <br>
 [restart device](#action-restart-device) - Restart the configured device
 
 ## action: 'test connectivity'
 
 Validate the credentials provided for connectivity
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -54,7 +54,7 @@ No Output
 
 Download a packet capture file from Netwitness Logs and Packets and add it to the vault
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 There are several ways to search NetWitness Logs and Packets to get capture files:<ul><li>By session ID, which can be done in three ways:<ul><li>Searching by a single session ID. The downloaded capture file would have the name <b>netwitness-\<id></b>.</li><li>Searching by a list of session IDs. In this case the <b>session_ids</b> parameter should be a comma separated list. The downloaded capture file would have the name <b>netwitness-\<id1_id2_id3...></b>. The session ID list will be cut off at 50 characters.</li><li>Searching by a range of session IDs. In this case the <b>session_ids</b> parameter would have the format <b>start_id-end_id</b>. The downloaded capture file would have the name <b>netwitness-\<start_id>-\<end_id></b>. NOTE: Including spaces when specifying a range of sessions IDs will cause the action to fail.</li></ul></li><li>By query. The <b>query</b> parameter should be treated as the <b>where</b> clause of a database query using the meta keys configured on the NetWitness server. The downloaded capture file would have the name <b>netwitness-\<random_uuid></b>. Some example queries:<ul><li>ip.src=10.10.10.10</li><li>ip.dst=10.10.0.1 || ip.dst=10.10.0.2</li><li>ip.src=10.10.0.7 && ip.dst=10.10.0.8</li><li>ip.src exists</li></ul></li><li>By time frame, which requires both the <b>start_time</b> and <b>end_time</b> parameters be given. The downloaded capture file would have the name <b>netwitness-\<start_time>\_\<end_time></b>.</li></ul>NOTE: If <b>start_time</b> and <b>end_time</b> are included along with a <b>query</b>, then the time-frame will be appended to the end of the query. For example: if the query is ip.src=10.10.10.10, the start time is 2018-01-01 00:00:00, and the end time is 2018-01-01 23:59:59, then the final query would be ip.src=10.10.0.7 && time="2018-01-01 00:00:00"-"2018-01-01 23:59:59"<br><br><b>file_name</b> is an optional parameter that, if specified, will result in the capture file being given that name. It will override the filenames mentioned above. The appropriate extension, <b>.pcap</b> (or <b>.json</b> for <b>get log</b>), will be appended to the file name if it is not already present.<br><br>If a query returns no data, the action will pass, but no file will be added to the vault. Queries to decoders that return large amounts of data, which take more than five minutes, can time out, in which case the action will fail.
@@ -92,7 +92,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Download a log capture file from Netwitness Logs and Packets and add it to the vault
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 See <b>get pcap</b> for further information on this action.
@@ -130,7 +130,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Upload a feed or parser file to a NetWitness Decoder
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -155,7 +155,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Restart the configured device
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -177,7 +177,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

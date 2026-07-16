@@ -1,6 +1,6 @@
 # File: netwitness_connector.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         config = self.get_config()
 
         # Initialize parameters
-        self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, False)
+        self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, True)
         self._base_url = config[consts.NETWITNESS_CONFIG_SERVER].strip("/")
         self._api_username = config[consts.NETWITNESS_CONFIG_API_USERNAME]
         self._api_password = config[consts.NETWITNESS_CONFIG_API_PASSWORD]
@@ -290,6 +290,8 @@ class NetWitnessConnector(phantom.BaseConnector):
         time2 = param.get(consts.NETWITNESS_JSON_END_TIME)
         time1 = param.get(consts.NETWITNESS_JSON_START_TIME)
         filename = param.get(consts.NETWITNESS_JSON_FILE_NAME)
+        if filename and (filename in {".", ".."} or "/" in filename or "\\" in filename):
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_UNSAFE_FILE_NAME)
         session_id = param.get(consts.NETWITNESS_JSON_SESSION_ID)
 
         # Need either a session ID, or a complete timeframe
