@@ -71,7 +71,7 @@ class NetWitnessConnector(phantom.BaseConnector):
         config = self.get_config()
 
         # Initialize parameters
-        self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, False)
+        self._verify = config.get(consts.NETWITNESS_CONFIG_VERIFY, True)
         self._base_url = config[consts.NETWITNESS_CONFIG_SERVER].strip("/")
         self._api_username = config[consts.NETWITNESS_CONFIG_API_USERNAME]
         self._api_password = config[consts.NETWITNESS_CONFIG_API_PASSWORD]
