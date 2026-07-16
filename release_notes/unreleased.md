@@ -1,3 +1,3 @@
 **Unreleased**
 
-* chore: establish the Codex vulnerability-remediation baseline.
+* Reject capture file names containing path separators or traversal sequences. [PSAAS-30692]

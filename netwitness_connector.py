@@ -290,6 +290,8 @@ class NetWitnessConnector(phantom.BaseConnector):
         time2 = param.get(consts.NETWITNESS_JSON_END_TIME)
         time1 = param.get(consts.NETWITNESS_JSON_START_TIME)
         filename = param.get(consts.NETWITNESS_JSON_FILE_NAME)
+        if filename and (filename in {".", ".."} or "/" in filename or "\\" in filename):
+            return action_result.set_status(phantom.APP_ERROR, consts.NETWITNESS_ERR_UNSAFE_FILE_NAME)
         session_id = param.get(consts.NETWITNESS_JSON_SESSION_ID)
 
         # Need either a session ID, or a complete timeframe
