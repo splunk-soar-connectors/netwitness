@@ -1,4 +1,1 @@
 **Unreleased**
-
-* Reject capture file names containing path separators or traversal sequences. [PSAAS-30692]
-* Enable TLS certificate verification by default while retaining an explicit opt-out. [PSAAS-30788]

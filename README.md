@@ -1,7 +1,7 @@
 # NetWitness Logs and Packets
 
 Publisher: Splunk Community <br>
-Connector Version: 3.0.0 <br>
+Connector Version: 4.0.0 <br>
 Product Vendor: RSA <br>
 Product Name: NetWitness Logs and Packets <br>
 Minimum Product Version: 6.2.2
